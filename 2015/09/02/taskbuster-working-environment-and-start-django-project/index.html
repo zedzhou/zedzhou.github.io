@@ -1,0 +1,131 @@
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    
+    <link rel="stylesheet" href="/css/main.css" type="text/css">
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+    
+    <link rel="alternate" type="application/atom+xml" href="/atom.xml" title="Atom feed">
+    <link rel="shortcut icon" href="/images/avatar.png">
+
+    
+    <title>taskbuster-working-environment-and-start-django-project</title>
+</head>
+
+<body>
+
+<p>##第一部分–搭建好工作环境，开始Django之旅<br>@(TapPlex)[python]<br>搭建一个合适的工作环境对于程序员的生产效率是非常重要的。虽然这可能需要花费一点时间，但这是完全值得的。</p>
+<p>举例来说，虚拟环境可以帮助你合理的组织、管理包；好的编辑器可以方便你进行变量、包方法的跳转，实现语言高亮。</p>
+<p>如果你还没有读过一些教程，那么请放心，这份Django教程是最新的。在我们的教程里，我们使用Django1.8和Python 3 。但这并不意味着如果你使用老版本的Django或者Python 2就不能继续这份教程，那只意味着你将需要多花点功夫来进行程序的调试，并自个儿解决些我在这儿没涉及到的问题。</p>
+<hr>
+<p>[TOC]</p>
+<p>###搭建工作环境</p>
+<p>学习本教程，你需要这些东西：Python3，pip3，virtualenv和virtualenvwrapper。<br><img src="http://www.marinamele.com/wp-content/uploads/2014/09/taskbuster_toolbox-300x296.jpg" alt="TaskBuster工具箱: Python3, pip3, virtualenv, virtualenvwrapper, Git以及Sublime Text"></p>
+<p>如果你使用Mac OSX，你可以查看这边文章：<br><a href="http://www.marinamele.com/2014/07/install-python3-on-mac-os-x-and-use-virtualenv-and-virtualenvwrapper.html" target="_blank" rel="external">Install Python 3 on Mac OS X and use virtualenv and virtualenvwrapper</a></p>
+<p>当然，一个好的编辑器也是必不可少的，它可以帮助我们方便的管理所有我们创建的Django文件。我推荐使用Sublime Text，但是请随意，Vim、Emacs等其它的文本编辑器都没问题！关于Sublime Text的使用，请查看这边文章：<a href="http://www.marinamele.com/2014/03/install-and-configure-sublime-text-3.html" target="_blank" rel="external">how to install and configure Sublime Text 3 for Django</a></p>
+<p>我们将在下一部分的教程讲解Git，版本控制系统。如果代码涉及到多个开发者，那么我推荐你使用如GitHub、Bitbucket等Git仓库（Bitbucket提供免费的私人仓库）。你可以查看这篇文章学习一些Git的基本使用：<a href="http://www.marinamele.com/2014/07/git-tutorial-create-a-repository-commit-git-branches-and-bitbucket.html" target="_blank" rel="external">Git Tutorial</a></p>
+<p>那好，现在就可以开始我们超酷的Django之旅啦！</p>
+<p>###安装Django1.8</p>
+<p>首先，我们将使用Python3作为默认的Python解释器来创建一个虚拟环境。打开你的终端，输入：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">which</span> python3</span><br></pre></td></tr></table></figure></p>
+<p>来确定Python3的执行路径。我这里路径是<code>/usr/local/bin/python3</code>。然后，创建一个用于开发的虚拟环境，并指明Python3作为默认的Python解释器（记住，使用virtualenvwrapper时，虚拟环境是在<code>~/.virtualenvs</code>这个默认文件夹下，而不是你的工作目录）<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mkvirtualenv --python=/usr/<span class="built_in">local</span>/bin/python3 tb_dev</span><br></pre></td></tr></table></figure></p>
+<p>如果你的Python解释器路径跟我不一样，请更改上面的路径。当然如果你愿意，你也可以把虚拟环境的名字tb_dev改成你喜欢的。现在你可以注意到，虚拟环境已经激活–命令行将显示成这个样子：<code>(tb_dev)[user@host]$</code>。</p>
+<p>你可以通过下面的命令退出当前的虚拟环境：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ deactivate</span><br></pre></td></tr></table></figure></p>
+<p>通过下面的命令再次激活虚拟环境：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ workon tb_dev</span><br></pre></td></tr></table></figure></p>
+<p>请注意，如果你正在这个虚拟环境下工作，那么当你输入python，你将激活Python3，当你调用pip时，你实际调用的将是Python3版本的pip，即pip3。是不是觉得很帅啊？！</p>
+<p>准备好安装最新版本的Django了吗？！在tb_dev激活的虚拟环境下，输入：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pip install Django==<span class="number">1.8</span></span><br></pre></td></tr></table></figure></p>
+<p>注意：你可以检查下是否有新版本的Django存在。</p>
+<p>###工作目录和Sublime Text</p>
+<p>在你电脑里新建一个文件夹，起名为taskbuster_project<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mkdir taskbuster_project</span><br></pre></td></tr></table></figure></p>
+<p>这个文件夹将成为你Django项目的顶层目录，它包括所有的文档，部署文件，版本控制文件，sublime项目文件，功能测试，等等。</p>
+<p>让我们在这个文件夹下创建一个Sublime Text项目来管理这些文件（或者使用你喜欢的编辑器）。在这里，我将假设你已经使用终端激活了subl命令来打开文件：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ subl taskbuster_project</span><br></pre></td></tr></table></figure></p>
+<p>这个命令将打开<code>taskbuster_project</code>文件夹下所有的文件。下一步，点击顶层菜单，选择<code>项目/项目另存为</code>，把你的项目重命名为<code>TaskBuster.sublime-project</code>，然后在<code>taskbuster_project</code>文件夹下保存文件（默认是它的顶层文件夹）。</p>
+<p>现在，在<code>taskbuster_project</code>下看到两个不同的文件：<code>TaskBuster.sublime-project</code>和<code>TaskBuster.sublime-workspace</code>（注意：后者在Sublime Text里是不可见的，但在终端可见）</p>
+<p>###遵循Testing Goat</p>
+<p>我正在读一本超棒的书，它就是由Hayyr J.W. Percival写的<a href="http://www.obeythetestinggoat.com/" target="_blank" rel="external">Test-Driven Development with Python</a>。这本书要求你必须服从Testing Goat–这意味着你的脑海中会时不时的萦绕着“测试先行”的声音。听Testing Goat的话，<strong>测试先行，测试先行</strong>。</p>
+<p><img src="http://www.marinamele.com/wp-content/uploads/2014/08/obey_the_testing_goat-1024x991.jpg" alt="Obey the testing Goat,Test first, test first!"></p>
+<p>那么在咱们的教程中，在创建任何的Django项目之前，我们将遵循测试先行的原则。</p>
+<p>众所周知，当一个Django项目成功创建时，开启服务器，打开本地主页<code>http://127.0.0.1:8000</code>，我们总会得到一条”It worked!”的蓝色页面内容。如果我们审查这个页面，我们可以发现在head区，title标签的内容是<code>&lt;title&gt;Welcome to Django&lt;/title&gt;</code>。我也知道，你现在看不到这个页面，因为你还没有创建任何Django项目！但你这会儿必须相信我！</p>
+<p><img src="http://www.marinamele.com/wp-content/uploads/2014/09/taskbuster_part1_it_worked.png" alt="Django it worked page"></p>
+<p>那现在让我们写个测试，这个测试会断定当我们打开<code>http://127.0.0.1:8000</code>时，我们将得到一个标题为<code>Welcome to Django</code>的页面。当然，这个测试将以失败告终，因为我们还没有创建任何的Djangox项目呀！但这就是我们需要遵循的原则：<strong>先创建测试，再写代码</strong>。</p>
+<p>首先，我们需要为测试创建一个新的虚拟环境，并为其安装Django 1.8：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ mkvirtualenv --python=/usr/<span class="built_in">local</span>/bin/python3 tb_<span class="built_in">test</span></span><br><span class="line">$ pip install Django==<span class="number">1.8</span></span><br></pre></td></tr></table></figure></p>
+<p>第二步，为了给测试模拟一个浏览器，我们需要使用Selenium包（在安装它之前，你需要确保Firefox已经在你系统里面安装好了）：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pip install --upgrade selenium</span><br></pre></td></tr></table></figure></p>
+<p>进入<code>taskbuster_project</code>文件夹，并为功能测试创建一个单独的文件夹。这个文件夹中将包含所有用来测试从用户的角度来考量的项目功能点。并且在这个功能测试文件夹中新建一个<code>all_users.py</code>的文件：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> taskbuster_project</span><br><span class="line">$ mkdir functional_tests</span><br><span class="line">$ <span class="built_in">cd</span> functional_tests</span><br><span class="line">$ touch all_users.py</span><br></pre></td></tr></table></figure></p>
+<p>用你的编辑器打开这个文件，并写入：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"><span class="keyword">from</span> selenium <span class="keyword">import</span> webdriver</span><br><span class="line"><span class="keyword">import</span> unittest</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">NewVisitorTest</span><span class="params">(unittest.TestCase)</span>:</span></span><br><span class="line"> </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">setUp</span><span class="params">(self)</span>:</span></span><br><span class="line">        self.browser = webdriver.Firefox()</span><br><span class="line">        self.browser.implicitly_wait(<span class="number">3</span>)</span><br><span class="line"> </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">tearDown</span><span class="params">(self)</span>:</span></span><br><span class="line">        self.browser.quit()</span><br><span class="line"> </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">test_it_worked</span><span class="params">(self)</span>:</span></span><br><span class="line">        self.browser.get(<span class="string">'http://localhost:8000'</span>)</span><br><span class="line">        self.assertIn(<span class="string">'Welcome to Django'</span>, self.browser.title)</span><br><span class="line"> </span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    unittest.main(warnings=<span class="string">'ignore'</span>)</span><br></pre></td></tr></table></figure></p>
+<p>让我们一步一步地分析上面的代码：</p>
+<ul>
+<li>第一行表明文件的编码方式</li>
+<li>然后导入selenium和用于测试的一个名为unittest的Python库</li>
+<li>创建一个TestCase类，命名为NewVisitorTest，在其中创建一下函数：<ul>
+<li><code>setUp</code>：初始化测试。它会打开浏览器，如果有必要，它会等待3秒钟的时间（如果页面没有加载）</li>
+<li><code>tearDown</code>：每次测试后将运行。它会把浏览器关闭。</li>
+<li>一个测试函数，它会断定网页标题将包含<code>Welcome to Django</code>。</li>
+</ul>
+</li>
+<li><code>setUp</code>和<code>tearDown</code>函数将在每一个测试函数的开始与结束的时候运行（测试函数即名字以<em>test</em>开头的函数）</li>
+<li>最后一行意味着仅当Python直接运行这个文件（而非导入）时，它将执行<code>unittest.main()</code>这个函数。这个函数将启动<code>unittest Test runner</code>，它会找到每一个含有以<em>test</em>字眼开头的函数。</li>
+<li>为了避免<code>ResourceWarning</code>，我们将调用参数设为<code>warnings=&#39;ignore&#39;</code>的<code>unittest.main()</code>。</li>
+</ul>
+<p>让我们运行下面的命令：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ python all_users.py</span><br></pre></td></tr></table></figure></p>
+<p>输出结果将很明显地告诉我们测试<strong>失败</strong>。你将看到如同下面的内容：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">FAIL: <span class="built_in">test</span>_it_worked (__main__.NewVisitorTest)</span><br></pre></td></tr></table></figure></p>
+<p>并得到一个内容为<code>Welcome to Django not found</code>的<code>AssertionError</code>。</p>
+<p>那么就让我们开始创建一个Django项目，并让这个测试通过吧！</p>
+<p>###创建一个Django项目</p>
+<p>进入<code>taskbuster_project</code>文件夹，并输入：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ django-admin.py startproject taskbuster .</span><br></pre></td></tr></table></figure></p>
+<p>注意这个命令最后的句点<code>.</code>，它将保证创建没有任何其他额外文件夹的<code>taskbuster</code>项目。如此之后，你的顶层目录结构应该像这样了：<br><img src="http://www.marinamele.com/wp-content/uploads/2014/09/taskbuster_part1_folder_structure.png" alt="Folder structure"></p>
+<blockquote>
+<p>注意：这张图是使用<code>tree</code>命令输出的（如果你想使用它，你需要先把它安装好）</p>
+</blockquote>
+<p>如同你已经看到的那样，我们已经创建了下列文件：</p>
+<ul>
+<li><code>manage.py</code>：用于管理开发服务器，数据库迁移，自定义脚本，等等。</li>
+<li><code>taskbuster</code>文件夹以及其中的文件：<ul>
+<li><code>__init__.py</code>：用于表明这是一个Python包</li>
+<li><code>settings.py</code>：用于配置项目</li>
+<li><code>urls.py</code>：用于关联<em>urls</em>和<em>views</em></li>
+<li><code>wsgi.py</code>：用于配置Django的部署</li>
+</ul>
+</li>
+</ul>
+<p>接下来的教程中，你会发现<code>taskbuster</code>文件夹将包含我们所有的<em>apps</em>，<em>templates</em>，<em>static</em>和其他与项目相关的文件</p>
+<p>###启动开发服务器</p>
+<p>当我们完成了项目创建，我们就可以启动开发服务器了。在你的终端打开一个标签，并激活<code>tb_dev</code>虚拟环境，进入<code>taskbuster_project</code>文件夹，运行：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ python manage.py runserver</span><br></pre></td></tr></table></figure></p>
+<p>也许你会遇见一个跟迁移有关的警告，但请别担心，我们将在后续的教程中处理这个问题。在输出的最后你可能会看到如同下面的内容：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Starting development server at http://<span class="number">127.0</span>.<span class="number">0.1</span>:<span class="number">8000</span>/.</span><br></pre></td></tr></table></figure></p>
+<p>你可以打开你的浏览器，输入这个url来确认是否能看到<code>It worked</code>的消息，但我更愿意使用我们已经创建的测试 :-)</p>
+<p>另外打开一个终端标签（使用<code>ctrl+t</code>或者<code>cmd+t</code>），并激活<code>tb_test</code>虚拟环境。现在，让我们运行我们的测试：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ python functional_tests/all_users.py</span><br></pre></td></tr></table></figure></p>
+<p>现在你应该看到这个消息啦：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Ran <span class="number">1</span> <span class="built_in">test</span> <span class="keyword">in</span> <span class="number">0.05</span>s</span><br><span class="line">OK</span><br></pre></td></tr></table></figure></p>
+<p>这意味着你的测试已经通过啦！:-)</p>
+<p>现在是时候开始创建Git仓库，并对你的代码使用版本控制。然而，在讨论那个话题之前，我们需要讨论安全这个话题。我们想把密钥（Secret Keys）隔离在版本控制系统之外，当然这是为了…保密（Secret）！</p>
+<p>你将在下部分教程中学习这块知识，即配置文件与版本控制。</p>
+<p>别错过哦！:-)</p>
+<p>如果你觉得教程不错，请帮忙分享给你的朋友，也许这可以帮助到他们！:-)</p>
+
+
+<!--<a href="http://yoursite.com/2015/09/02/taskbuster-working-environment-and-start-django-project/#disqus_thread" class="article-comment-link">Comments</a>-->
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = undefined; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+<div style="display:none">
+<script src="http://s4.cnzz.com/stat.php?id=undefined&web_id=undefined" language="JavaScript"></script>script>
+</div>
+
+
+
+
+
+
+
+</body>
+</html>
