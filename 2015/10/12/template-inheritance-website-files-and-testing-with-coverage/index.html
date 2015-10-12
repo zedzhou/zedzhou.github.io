@@ -1,0 +1,75 @@
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    
+    <link rel="stylesheet" href="/css/main.css" type="text/css">
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+    
+    <link rel="alternate" type="application/atom+xml" href="/atom.xml" title="Atom feed">
+    <link rel="shortcut icon" href="/images/avatar.png">
+
+    
+    <title>第四部分--模板继承，站点文件以及测试代码覆盖工具coverage的使用</title>
+</head>
+
+<body>
+
+<p>这部分我们会先说说基础模板和主页的模板继承。</p>
+<p>然后，我们将讨论一般站点都会用到的一些配置文件。</p>
+<p><code>robots.txt</code>在项目初期很重要，因为这时你是不会希望Google索引你的网页的。想象一下用户在用Google搜索东西的时候，不经意间进入到你正在开发的网站，而网站此时不堪的CSS样式和一些无意义的文本被用户看到后可能发生的事吧！</p>
+<p>另外，你将会学到如果在你的测试中使用<code>Coverage</code>这个工具。你可能已经知道，这个工具可以帮你衡量你的代码有多少已经测试过了。</p>
+<p>本部分的概览：</p>
+<hr>
+<p>在开始本部分之前顺便问一下，我们之前所写的测试在你这是否都通过了呢？ :-)</p>
+<h3 id="模板继承">模板继承</h3><p>在上一部分中，我们已经让<code>index.html</code>继承了<code>base.html</code>的文件内容。然而，这俩文件唯一不同的内容就是标题。</p>
+<p>让我们把<code>base.html</code>变得更灵活一些吧。你可以在这找到这些文件最近的版本：<a href="https://gist.github.com/mineta/5546c0f3f1953f8f38d1" target="_blank" rel="external">base.html</a>和<a href="https://gist.github.com/mineta/9deadb890b03e5aaec97" target="_blank" rel="external">index.html</a></p>
+<p>我们在head标签中加入下面两个代码块：<br><figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&#123;% block head_css %&#125;&#123;% endblock %&#125;</span><br><span class="line">&#123;% block head_javascript %&#125;&#123;% endblock %&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这使得我们的模板可以包含更多的<code>css</code>或<code>javascript</code>文件。下一步，我们将给<code>class</code>为<code>navbar</code>的<code>div</code>加上一个<code>navbar</code>的代码块：<br><figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;% block navbar %&#125;</span><br><span class="line">    <span class="tag">&lt;<span class="title">div</span> <span class="attribute">class</span>=<span class="value">"navbar navbar-inverse navbar-fixed-top"</span> <span class="attribute">role</span>=<span class="value">"navigation"</span>&gt;</span></span><br><span class="line">    ...</span><br><span class="line">    <span class="tag">&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line">&#123;% endblock %&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这样，我们就可以替换掉我们模板里面<code>navbar</code>的内容了，但如果我们不指定，这个<code>navbar</code>默认会显示。</p>
+<p>主要的内容应该放在一个名为<code>block</code>的单独的内容块里。然而，由于我们默认不需要任何内容，我们将把<code>jumbotron</code>和<code>container</code>这些<code>divs</code>里面的内容全部剪切至<code>index.html</code>中。这样<code>index.html</code>就成了下面这个样子了：<br><figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&#123;% extends "base.html" %&#125;</span><br><span class="line"></span><br><span class="line">&#123;% block head_title %&#125;TaskBuster Django Tutorial&#123;% endblock %&#125;</span><br><span class="line"></span><br><span class="line">&#123;% block content %&#125;</span><br><span class="line">    <span class="tag">&lt;<span class="title">div</span> <span class="attribute">class</span>=<span class="value">"jumbotron"</span>&gt;</span></span><br><span class="line">    ...</span><br><span class="line">    <span class="tag">&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">div</span> <span class="attribute">class</span>=<span class="value">"container"</span>&gt;</span></span><br><span class="line">    ...</span><br><span class="line">    <span class="tag">&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line">&#123;% endblock %&#125;</span><br></pre></td></tr></table></figure></p>
+<p>而在<code>base.html</code>中，你只需要添加上这段代码：<br><figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;% block content %&#125;&#123;% endblock %&#125;</span><br></pre></td></tr></table></figure></p>
+<p>最后，<code>footer</code>也需要一些脚本，让我们把这些加上：<br><figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;% block footer_javascript %&#125;&#123;% endblock %&#125;</span><br></pre></td></tr></table></figure></p>
+<p>保存一下这些文件然后运行测试。应该来说主页看起来跟之前会是一样的，并且所有的测试应该会通过！</p>
+<h3 id="Robots-txt和humans-txt">Robots.txt和humans.txt</h3><p>通常搜索引擎会搜索下面两个文件所指定的内容：</p>
+<ul>
+<li><code>/robots.txt</code></li>
+<li><code>/humans.txt</code></li>
+</ul>
+<p>那我们先让这些文件能通过url发现吧。如你所猜想的一样，开始之前，我们将为它们创建一个功能测试。:-)</p>
+<p>打开<code>functional_tests/test_all_users.py</code>文件，在<code>HomeNewVisitorTest</code>类中添加下面的测试函数：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_home_files</span><span class="params">(self)</span>:</span></span><br><span class="line">    self.browser.get(self.live_server_url + <span class="string">"/robots.txt"</span>)</span><br><span class="line">    self.assertNotIn(<span class="string">"Not Found"</span>, self.browser.title)</span><br><span class="line">    self.browser.get(self.live_server_url + <span class="string">"/humans.txt"</span>)</span><br><span class="line">    self.assertNotIn(<span class="string">"Not Found"</span>, self.browser.title)</span><br></pre></td></tr></table></figure></p>
+<p>它会测试当我们打开相应的<code>url</code>时，我们应该不会看到<code>Not Found</code>的404页面（如果在你这儿当页面找不到时，你的浏览器显示了一条不同的消息，那么你应该把你的测试文本改成这条消息内容）。</p>
+<p>运行测试，看看它失败的内容。下一步，更新你的<code>urls.py</code>：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> .views <span class="keyword">import</span> home, home_files</span><br></pre></td></tr></table></figure></p>
+<p>以及：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">urlpatterns = patterns(</span><br><span class="line">    ...</span><br><span class="line">    url(<span class="string">r'^(?P&lt;filename&gt;(robots.txt)|(humans.txt))$'</span>,</span><br><span class="line">        home_files, name=<span class="string">'home-files'</span>),</span><br><span class="line">    ...</span><br><span class="line">)</span><br></pre></td></tr></table></figure></p>
+<p>这是一个正则表达式，它接收我们想要的<code>urls</code>，并传递一个文件名的参数，例如，<code>robots.txt</code>或者<code>humans.txt</code>。</p>
+<p>接下来，编辑<code>views.py</code>，加入相应的<code>home_files</code>视图：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">home_files</span><span class="params">(request, filename)</span>:</span></span><br><span class="line">    <span class="keyword">return</span> render(request, filename, &#123;&#125;, content_type=<span class="string">"text/plain"</span>)</span><br></pre></td></tr></table></figure></p>
+<p>再次运行测试，现在它们应该会通过！:-)</p>
+<p>但是，这些文件该包含些什么内容呢？</p>
+<p>当我开发一个网站时，我不希望<code>Google</code>索引我的任何网页。因此，我会在<code>robots.txt</code>中添加下面的内容：<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">User-agent: *&#10;Disallow: /</span><br></pre></td></tr></table></figure></p>
+<p>而在<code>humans.txt</code>中，你应该加上你们团队的信息。例如：<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># humanstxt.org/&#10;# The humans responsible &#38; technology colophon&#10;&#10;# TEAM&#10;    Marina Mele -- Developer -- @marina_mele&#10;&#10;# THANKS&#10;    Thanks to all my Blog readers, who encouraged me to write the&#10;    TaskBuster Django Tutorial&#10;&#10;# TECHNOLOGY COLOPHON&#10;    Django&#10;    HTML5 Boilerplate&#10;    Twitter Bootstrap</span><br></pre></td></tr></table></figure></p>
+<p>当你的站点正式上线时，你要记得编辑下<code>robots.txt</code>的内容，好让<code>Google</code>可以索引你的页面。否则，用户在使用搜索引擎搜索跟你站点相关的内容时不会得到你的站点信息。</p>
+<h3 id="favicon-ico_图片">favicon.ico 图片</h3><p>如果你不知道什么是<code>favicon</code>图片，那么请看下这个页面标签开头的那个球形奶牛图片 :-)</p>
+<p>你可能已经发现在<code>taskbuster/static</code>文件夹下已经存在一个<code>favicon.ico</code>文件，但它现在在我们的主页不可见。这是因为我们忘了把它添加到我们的模板中了！</p>
+<p>所以请打开<code>base.html</code>模板，在<code>title</code>标签中加入下面的代码：<br><figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">link</span> <span class="attribute">rel</span>=<span class="value">"shortcut icon"</span> <span class="attribute">href</span>=<span class="value">"&#123;% static 'favicon.ico' %&#125;"</span> </span><br><span class="line">  <span class="attribute">type</span>=<span class="value">"image/x-icon"</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>重新加载页面，你可以在你的页面标签开头看到你的<code>icon</code>。</p>
+<h3 id="测试代码覆盖工具coverage的使用">测试代码覆盖工具coverage的使用</h3><p><code>Coverage</code>对于测试来说是非常有用的工具。它告诉你你的测试已经覆盖了哪些代码。在上线之前确保你的测试覆盖了大部分代码是非常重要的。</p>
+<p>我们只在测试环境中安装它，所以激活<code>tb_test</code>环境，然后运行：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pip install coverage</span><br></pre></td></tr></table></figure></p>
+<p>使用<code>pip freeze</code>核对一下版本，然后把它添加到<code>requirements/testing.txt</code>。</p>
+<p>然后，使用<code>Coverage</code>运行你的测试：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ coverage run --source=<span class="string">'.'</span> manage.py <span class="built_in">test</span></span><br></pre></td></tr></table></figure></p>
+<p>这将同时运行单元测试和功能测试。你可以这样看<code>coverage</code>报告：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ coverage report</span><br></pre></td></tr></table></figure></p>
+<p>如果你希望得到一个<code>html</code>格式的报告，输入：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ coverage html</span><br></pre></td></tr></table></figure></p>
+<p>然后，你可以在<code>htmlcov/index.html</code>中看到你想要的结果了，具体说来你可以看到测试代码覆盖了文件中哪些行！很棒，对吧！</p>
+<p>然而，这些命令创建了一些我们不希望放在仓库里的文件。所以这样处理：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">echo</span> <span class="string">".coverage"</span> &gt;&gt; .gitignore</span><br><span class="line">$ <span class="built_in">echo</span> <span class="string">"htmlcov"</span> &gt;&gt; .gitignore</span><br></pre></td></tr></table></figure></p>
+<p>这就是本部分所有的内容！</p>
+<p>在下一部分，我们将讨论国际化。我们将配置两种语言，并让我们的网站在两种语言下都可以运行。</p>
+<p>进入下一部分 – <a href="http://www.marinamele.com/taskbuster-django-tutorial/internationalization-localization-languages-time-zones" target="_blank" rel="external">国际化和本地化。多语言以及时区</a>。</p>
+<p>你喜欢<code>Taskbuster</code>教程吗？如果喜欢，请跟你的朋友们分享它！ :-)</p>
+
+
+
+
+
+
+</body>
+</html>
