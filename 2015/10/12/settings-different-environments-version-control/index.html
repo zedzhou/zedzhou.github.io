@@ -1,0 +1,136 @@
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    
+    <link rel="stylesheet" href="/css/main.css" type="text/css">
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+    
+    <link rel="alternate" type="application/atom+xml" href="/atom.xml" title="Atom feed">
+    <link rel="shortcut icon" href="/images/avatar.png">
+
+    
+    <title>第二部分--配置文件与版本控制</title>
+</head>
+
+<body>
+
+<p>在第一部分的教程里面，我们搭建好了工作环境，并创建了<code>TaskBuster</code>项目。</p>
+<p>现在，我们将为测试、开发和生产配置不同的环境，编辑不同的Django配置文件。</p>
+<p>另外，我们将移除这些文件中的<code>SECRET_KEY</code>以保证其真正的安全。</p>
+<p>下一步，我们将创建一个仓库，使用版本控制系统来管理我们的代码，并把代码上传到<code>Bitbucket</code>。</p>
+<p>准备好迎接下一部分了吗？下面是概览：</p>
+<hr>
+<h3 id="虚拟环境与依赖文件">虚拟环境与依赖文件</h3><p>当开始一个项目时，一个非常重要的事情是对你的项目进行版本控制。举例来说，想象一下你正在一台安装了Django 1.8的电脑上进行开发，然后你准备在一台安装了Django 1.6的服务器上进行部署。你的代码在本地上将正常工作，但是当你部署时，一些不兼容的错误将出现。如果同一个项目有多个开发者进行开发，并且他们各自安装了不同版本的包，那么也会出现上述问题。</p>
+<p><img src="http://www.marinamele.com/wp-content/uploads/2014/09/taskbuster_virtual_environments-297x300.jpg" alt="taskbuster_virtual_environments"></p>
+<blockquote>
+<p>使用虚拟环境安装各自的包，使Django看起来像Cobra（眼镜蛇）！</p>
+</blockquote>
+<p>这个问题的标准解决方法是整合所有的包，并使用<code>requirements.txt</code>文件保存其版本信息。这个文件包含的信息类似于：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Django==<span class="number">1.8</span></span><br><span class="line">selenium==<span class="number">2.42</span>.<span class="number">1</span></span><br></pre></td></tr></table></figure></p>
+<p>那怎么查看我们已经安装过那些包了呢？（不用担心你的虚拟环境中包版本与这儿不同）。</p>
+<p>你可以通过这条命令来查看你当前虚拟环境下已安装的包：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pip freeze</span><br></pre></td></tr></table></figure></p>
+<p>从上面的输出可以看出，你可以通过把输出内容保存到文件里来完成<code>requirements.txt</code>的自动生成：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pip freeze &gt; requirements.txt</span><br></pre></td></tr></table></figure></p>
+<p>然而，也许你已经注意到，Selenium只是在测试环境下需要安装，所以咱没必要在开发和生产环境中安装这个包。</p>
+<p>让我们这样解决这个问题：创建一个<code>requirements</code>的文件夹，并为每一个环境创建一个依赖文件。进入<code>taskbuster_project</code>文件夹，输入：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ mkdir requirements</span><br><span class="line">$ touch requirements/&#123;base.txt,development.txt,production.txt,testing.txt&#125;</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>注意：不要在touch这个命令中添加额外的空格，否则它不会正常工作 :-) 现在你可以把之前的<code>requirements.txt</code>删掉，因为我们已经不需要它了。另外，如果你计划在一台生产服务器中运行一个半私人的版本站点，你也可以创建一个<code>staging.txt</code>文件。</p>
+</blockquote>
+<p>让我们首先编辑<code>base.txt</code>文件。这个文件将包含所有环境共有的包。现在，它应该只包含Django版本的内容：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> requirements</span><br><span class="line">$ <span class="built_in">echo</span> <span class="string">"Django==1.8"</span> &gt;&gt; base.txt</span><br></pre></td></tr></table></figure></p>
+<p>如果你使用的是其它的Django版本，那请替换成你自己的！</p>
+<p>现在让我们把其它的三个文件继承<code>base.txt</code>的内容：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">echo</span> <span class="string">"-r base.txt"</span> &gt;&gt; development.txt</span><br><span class="line">$ <span class="built_in">echo</span> <span class="string">"-r base.txt"</span> &gt;&gt; testing.txt</span><br><span class="line">$ <span class="built_in">echo</span> <span class="string">"-r base.txt"</span> &gt;&gt; production.txt</span><br></pre></td></tr></table></figure></p>
+<p>最后，我们需要把<code>Selenium</code>加入到<code>testing.txt</code>中：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">echo</span> <span class="string">"selenium==2.42.1"</span> &gt;&gt; testing.txt</span><br></pre></td></tr></table></figure></p>
+<p>同样的，请写入你自己的版本。</p>
+<p>Ok，现在已万事俱备。当团队有新成员加入时，我们将告诉他需要创建两个不同的环境，一个用于测试，一个用于开发（生产环境是用来部署的）。</p>
+<p>接下来，他只需要激活这些环境，并安装相应环境下的<code>requirements.txt</code>中的包即可：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ workon tb_dev</span><br><span class="line">$ pip install -r requirements/development.txt</span><br><span class="line"></span><br><span class="line">$ workon tb_<span class="built_in">test</span></span><br><span class="line">$ pip install -r requirements/testing.txt</span><br></pre></td></tr></table></figure></p>
+<h3 id="不同的环境使用不同的配置文件">不同的环境使用不同的配置文件</h3><p>之前设定的每一个环境都有一个不同的目的，因此，它们需要不同的配置。例如，开发和部署环境的数据库配置可能不同，测试环境中使用的包可能在其他环境中不需要（比如selenium）。</p>
+<p>这就是我们要为不同环境设定不同配置文件的原因。首先，我们将在<code>taskbuster</code>文件夹中创建一个包含配置文件的子文件夹：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mkdir taskbuster/settings</span><br></pre></td></tr></table></figure></p>
+<p>这个文件夹将包含：</p>
+<ul>
+<li><code>__init__.py</code>：这个文件将让当前文件夹成为一个Python包</li>
+<li><code>base.py</code>：包含所有环境共有的设置。其他的配置文件将继承自它。</li>
+<li><code>development.py</code>：用于本地开发</li>
+<li><code>testing.py</code>：用于测试</li>
+<li><code>production.py</code>：将用于生产环境</li>
+<li><code>staging.py</code>：如果你在生产服务器中运行你的staging版本的项目</li>
+</ul>
+<p>让我们创建这些文件先，所有的文件将置于<code>taskbuster/settings</code>文件夹：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> taskbuster/settings</span><br><span class="line">$ touch __init__.py development.py testing.py production.py staging.py</span><br></pre></td></tr></table></figure></p>
+<p>并编辑每一个文件，让它们继承<code>base.py</code>的内容：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"><span class="keyword">from</span> .base <span class="keyword">import</span> *</span><br></pre></td></tr></table></figure></p>
+<p>最后，我们需要移动并重命名Django创建的<code>settings.py</code>文件为<code>settings</code>文件夹下的<code>base.py</code>。在<code>settings</code>文件夹下，你需要输入：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mv ../settings.py base.py</span><br></pre></td></tr></table></figure></p>
+<p>创建好这些文件后，我们需要为不同的虚拟环境制定正确的配置文件。</p>
+<p>通过<code>virtualenvwrapper</code>，我们可以配置不同的钩子，这些钩子将在激活虚拟环境前后，退出虚拟环境前后被刷新。这意味着我们可以定义一些将在虚拟环境工作周期的不同阶段运行的命令。这些钩子保存在各虚拟环境主目录的<code>bin</code>文件夹下，即<code>preactivate</code>，<code>postactivate</code>，<code>predeactivate</code>，<code>postdeactivate</code>。</p>
+<p>在我们的例子里，我们让<code>postactivate</code>在虚拟环境激活后设定好<code>DJANGO_SETTINGS_MODULE</code>变量，并在退出虚拟环境后，使用<code>predeactivate</code>清除它。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ workon tb_dev</span><br><span class="line">$ <span class="built_in">cd</span> <span class="variable">$VIRTUAL_ENV</span>/bin</span><br></pre></td></tr></table></figure></p>
+<p>后面一条命令将带你进入虚拟环境主目录的<code>bin</code>目录，那些不同的钩子就在里面。编辑<code>postactivate</code>文件，加上：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> DJANGO_SETTINGS_MODULE=<span class="string">"taskbuster.settings.development"</span></span><br></pre></td></tr></table></figure></p>
+<p>编辑<code>predeactivate</code>文件，加上：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">unset</span> DJANGO_SETTINGS_MODULE</span><br></pre></td></tr></table></figure></p>
+<p>在测试环境中进行同样的工作，只是做如下更改：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> DJANGO_SETTINGS_MODULE=<span class="string">"taskbuster.settings.testing"</span></span><br></pre></td></tr></table></figure></p>
+<p>是时候运行一下啦！回到<code>taskbuster_project</code>目录，激活你的开发环境。然后运行：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ python manage.py runserver</span><br></pre></td></tr></table></figure></p>
+<p>在输出中你应该会看到一条表明你正在使用<code>taskbuster.settings.development</code>配置文件的消息：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Django version <span class="number">1.8</span>, using settings <span class="string">'taskbuster.settings.development'</span></span><br></pre></td></tr></table></figure></p>
+<p>另开一个终端标签（保持之前的服务器处于激活状态），激活测试环境。核对一下测试环境是否使用的是<code>taskbuster.settings.testing</code>。也许你会被告知当前端口已经被开发环境占用了，因此我们需要为其指定另一端口：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ python manage.py runserver <span class="number">127.0</span>.<span class="number">0.1</span>:<span class="number">8001</span></span><br></pre></td></tr></table></figure></p>
+<p>接下来，掐断测试环境的服务器，并运行功能测试：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ python functional_tests/all_users.py</span><br></pre></td></tr></table></figure></p>
+<p>Yes！我们并没有破坏什么东西 :-)</p>
+<h3 id="生产环境设置_–_禁止调试">生产环境设置 – 禁止调试</h3><p>在生产环境中，将DEBUG和TEMPLATE_DEBUG设为False是非常重要的。</p>
+<p>首先，将这俩从<code>base.py</code>剪切至<code>development.py</code>和<code>testing.py</code>中，并设置其为True：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">DEBUG = <span class="keyword">True</span></span><br><span class="line">TEMPLATE_DEBUG = <span class="keyword">True</span></span><br></pre></td></tr></table></figure></p>
+<p>然后，把它们复制到<code>production.py</code>中，并设置其为False：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">DEBUG = <span class="keyword">False</span></span><br><span class="line">TEMPLATE_DEBUG = <span class="keyword">False</span></span><br></pre></td></tr></table></figure></p>
+<p>这样，这俩变量在各自的环境中已经有了正确的值。如果你还有<code>staging.py</code>，那么也请复制这两变量到此文件中。</p>
+<h3 id="Django安全与密钥（Secret_Key）">Django安全与密钥（Secret Key）</h3><p>如果你打开<code>taskbuster/settings/base.py</code>，你会看到一个名为<code>SECRET_KEY</code>的变量。这个变量应该保密，因此隔离出版本控制系统。</p>
+<p>你可以直接把<code>base.py</code>加入到<code>.gitignore</code>文件中，这是直接把它从版本控制系统中移除的方法。然而，在项目开发过程中，这个文件将经历诸多变化，所以应该把它保留在版本控制系统中，尤其当你想与其他开发者共享它的时候。因此，一个更好的方法是移除密钥，而选择从其它地方导入这个密钥。这个其它地方则应该隔离出版本控制系统。</p>
+<p>这里我们将把密钥保存在虚拟环境配置中，并从虚拟环境中获取密钥，并将其导入<code>base.py</code>中。</p>
+<p>注意：如果你在使用Apache，这个方法将失效。最好的方法是把密钥保存在某个文件中，然后从中导入至<code>base.py</code>。而这个文件应该从版本控制系统中移除，并将其加入到<code>.gitignore</code>中。我推荐你阅读<strong>Two Scoops of Django 1.6</strong>这本书的章节5.4（目前此书已更新至Django 1.8）</p>
+<p>要将密钥置于虚拟环境中，我们同样需要<code>virtualenvwrapper</code>的<code>postactivate</code>和<code>predeactivate</code>钩子。</p>
+<p>激活你的<code>tb_dev</code>环境，进入<code>bin</code>：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> <span class="variable">$VIRTUAL_ENV</span>/bin</span><br></pre></td></tr></table></figure></p>
+<p>如果输入<code>ls</code>，你将看到我们刚提到的这些文件。编辑<code>postactivate</code>，加入密钥：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">export SECRET_KEY=<span class="string">"your_secret_django_key"</span></span><br></pre></td></tr></table></figure></p>
+<p>注意：不要在=号周围添加任何空格。</p>
+<p>然后编辑<code>predeactivate</code>文件，加入这行代码：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">unset SECRET_KEY</span><br></pre></td></tr></table></figure></p>
+<p>如此之后，如果你输入：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ workon tb_dev</span><br><span class="line">$ <span class="built_in">echo</span> <span class="variable">$SECRET_KEY</span></span><br><span class="line">your_secret_django_key</span><br><span class="line">$ deactivate</span><br><span class="line">$ <span class="built_in">echo</span> <span class="variable">$SECRET_KEY</span></span><br></pre></td></tr></table></figure></p>
+<p>最后一行表明这里没有任何输出。这意味着<code>SECRET_KEY</code>只能在当前虚拟环境中可见，如你所愿。</p>
+<p>在<code>tb_test</code>虚拟环境中重复相同的步骤</p>
+<p>最后，编辑<code>base.py</code>，移除<code>SECRET_KEY</code>，加入下面的代码：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> django.core.exceptions <span class="keyword">import</span> ImproperlyConfigured</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_env_variable</span><span class="params">(var_name)</span>:</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">return</span> os.environ[var_name]</span><br><span class="line">    <span class="keyword">except</span> KeyError:</span><br><span class="line">        error_msg = <span class="string">"Set the %s environment variable"</span> % var_name</span><br><span class="line">        <span class="keyword">raise</span> ImproperlyConfigured(error_msg)</span><br><span class="line"></span><br><span class="line">SECRET_KEY = get_env_variable(<span class="string">'SECRET_KEY'</span>)</span><br></pre></td></tr></table></figure></p>
+<p>函数<code>get_env_variable</code>会尝试从环境中获取<code>var_name</code>变量，如果没找着，则报<code>ImproperlyConfigured</code>错误。这样，当你尝试运行你的应用，并且<code>SECRET_KEY</code>不存在，我们将看到一条表明我们项目失败原因的消息。</p>
+<p>让我们核对一下是否所有的工作都跟我们期待的一致。保存<code>base.py</code>，退出这俩虚拟环境，然后在不同的终端标签中再次激活它们</p>
+<p>在<code>tb_dev</code>中运行开发服务器<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ python manage.py runserver</span><br></pre></td></tr></table></figure></p>
+<p>然后在<code>tb_test</code>中运行功能测试<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ python functional_tests/all_users.py</span><br></pre></td></tr></table></figure></p>
+<p>希望你的测试也能成功！！ :-)</p>
+<p>注意：当你部署你的app的时候，你需要在你的服务器中指定<code>SECRET_KEY</code>。例如，如果你使用Heroku，你可以使用：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ heroku config:<span class="built_in">set</span> SECRET_KEY=<span class="string">"your_secret_key"</span></span><br></pre></td></tr></table></figure></p>
+<p>请别担心，我们将在后续的教程中讲述Heroku :-)</p>
+<h3 id="初始化Git仓库并进行提交">初始化Git仓库并进行提交</h3><p>Ok！现在我们可以开始将项目提交至新的仓库中去啦！友情提示：这里有份<a href="http://www.marinamele.com/2014/07/git-tutorial-create-a-repository-commit-git-branches-and-bitbucket.html" target="_blank" rel="external">基础的git教程</a>。</p>
+<p>进入<code>taskbuster_project</code>目录，输入：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git init .</span><br></pre></td></tr></table></figure></p>
+<p>它将在当前目录里初始化仓库。你将看到一个名为<code>.git</code>的新文件夹，它里面包含了刚创建的仓库。</p>
+<p>在添加文件进仓库之前，我们需要想想这里是否有我们不需要放进版本控制系统中的文件。</p>
+<p>注意，在运行开发服务器之后，我们将得到下面的额外文件：</p>
+<ul>
+<li><code>db.sqlite3</code> – 一个数据库</li>
+<li><code>__pycache__</code> –  一个包含所有<code>*.pyc</code>文件的文件夹</li>
+</ul>
+<p>这俩应该从版本控制系统中移除。创建一个<code>.gitignore</code>文件，并写入：<br><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.sqlite3&#10;__pycache__&#10;TaskBuster.sublime-workspace</span><br></pre></td></tr></table></figure></p>
+<p>这里我们也写入了sublime text的工作目录（如同我们在第一部分教程中看到的那样，当创建一个项目时，sublime text会生成两个不同的文件。我们只需要对以<code>-project</code>结尾的文件做版本控制，而以<code>-workspace</code>结尾的文件则不需要）。</p>
+<p>接下来，让我们把当前目录下所有文件添加至暂存区（除了<code>.gitignore</code>设置的文件）：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git add .</span><br></pre></td></tr></table></figure></p>
+<p>然后使用下面的命令查看添加至暂存区的文件：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git status</span><br></pre></td></tr></table></figure></p>
+<p>你应该可以看到如下图所示的内容，所有新加入的文件标绿：</p>
+<p><img src="http://www.marinamele.com/wp-content/uploads/2014/09/taskbuster_part1_first_commit.png" alt="Terminal First commit"></p>
+<p>如果你看到有你不想提交的文件，你可以这样移除它们：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git rm --cached path_of_file</span><br></pre></td></tr></table></figure></p>
+<p>不要忘了把它们加入到<code>.gitignore</code>，这样方便后续提交。</p>
+<p>最后，让我们提交我们的更改：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git commit -m <span class="string">"Taskbuster project created"</span></span><br></pre></td></tr></table></figure></p>
+<p><code>-m</code>标识表明后面的文字是用来描述这次提交的。如果你只输入<code>git commit</code>，一个编辑器将自动打开，让你写入提交的描述文字（默认的编辑器是<code>vi</code>）</p>
+<p>你可以使用下面的命令查看已执行的提交：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git <span class="built_in">log</span></span><br></pre></td></tr></table></figure></p>
+<h3 id="将项目上传至Bitbucket">将项目上传至Bitbucket</h3><p>如果你没有Bitbucket账号，请创建一个先，然后再新建一个仓库。之所以使用Bitbucket是因为它允许创建私人仓库，当然我们这里涉及到的操作步骤与Github差不多。</p>
+<p>你需要确定这个仓库的链接，如同：</p>
+<p><code>https://user_name@bitbucket.org/user_name/repository_name.git</code></p>
+<p>你可以按<code>Overview -&gt; Command line --&gt; I have an existing project</code>这样的导航找到它。</p>
+<p>首先我们需要添加Bitbucket作为一个远程仓库。进入<code>taskbuster_project</code>目录，输入：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git remote add origin https://user_name@bitbucket.org/user_name/repository_name.git</span><br></pre></td></tr></table></figure></p>
+<p>这里你需要写成你自己的仓库链接地址。注意：前面的命令只有一行。它将把你的Bitbucket仓库别名为origin（使用origin作为远程仓库的别名是一个惯用法）。</p>
+<p>接下来，让我们把仓库推送至这个新的Bitbucket仓库：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git push -u origin --all</span><br></pre></td></tr></table></figure></p>
+<p><code>-all</code>标识可以使<code>refs/heads</code>下所有的refs被推送，<code>-u</code>标识代表<code>--set-upstream</code>添加一个跟踪引用）。之后你可能需要输入你的密码。</p>
+<p>最后，你将看到这样的消息：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Branch master <span class="built_in">set</span> up to track remote branch master from origin.</span><br></pre></td></tr></table></figure></p>
+<p>你可以使用下面的命令查看当前活动的分支：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ git branch <span class="operator">-a</span></span><br><span class="line">* master</span><br><span class="line">   remotes/origin/master</span><br></pre></td></tr></table></figure></p>
+<p>Okey！现在我们第一个项目已经有了一个好的工作环境了，并且我们已经将它进行了版本控制，现在我们可以开始我们的主页啦！</p>
+<p>但是…我还没有讨论创建models，仅仅讲述配置static和templates文件，这样将得到一个包含一些CSS文件的漂亮主页 – 我讨厌没有CSS的开发，所以这常常是我做的第一件事。</p>
+<p>请在下一部分教程中去探索更这相关的更多内容！<a href="http://www.marinamele.com/taskbuster-django-tutorial/taskbuster-django-tutorial/create-home-page-with-tdd-staticfiles-templates-settings" target="_blank" rel="external">使用TDD，Staticfiles和Templates配置来创建一个主页</a></p>
+<p>请把本教程分享给你的开发者朋友！:-)</p>
+
+
+
+
+
+
+</body>
+</html>
